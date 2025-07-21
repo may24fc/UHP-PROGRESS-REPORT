@@ -958,7 +958,7 @@
             
             // Use a clean base URL for the link
             const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                ? 'https://yourdomain.github.io/uhp-reports' // Replace with your actual GitHub Pages URL
+                ? 'https://may24fc.github.io/UHP-PROGRESS-REPORT' // Your actual GitHub Pages URL
                 : `${window.location.origin}${window.location.pathname}`;
             
             const shareURL = `${baseUrl}?client=${encodeURIComponent(data.clientName)}&week=${data.weekNumber}&id=${reportId}`;
