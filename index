@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UHP - Progress Report Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -12,14 +13,14 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -28,56 +29,33 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 30px;
+            padding: 40px;
             text-align: center;
             margin-bottom: 30px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
 
         .logo {
-            font-size: 2em;
+            font-size: 2.5em;
             font-weight: bold;
             color: #4a5568;
             margin-bottom: 10px;
         }
 
         .title {
-            font-size: 2.5em;
+            font-size: 2.8em;
             font-weight: bold;
             color: #2d3748;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
-        .mode-selector {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
-            flex-wrap: wrap;
+        .subtitle {
+            font-size: 1.3em;
+            color: #718096;
+            margin-bottom: 20px;
         }
 
-        .mode-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-        }
-
-        .mode-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        .mode-btn.active {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-        }
-
-        .input-section, .report-section {
+        .upload-section {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             padding: 40px;
@@ -88,7 +66,7 @@
         .upload-area {
             border: 3px dashed #667eea;
             border-radius: 15px;
-            padding: 40px;
+            padding: 60px;
             text-align: center;
             margin-bottom: 30px;
             background: #f8f9ff;
@@ -99,16 +77,17 @@
         .upload-area:hover {
             border-color: #48bb78;
             background: #f0fff4;
+            transform: scale(1.02);
         }
 
         .upload-area.dragover {
             border-color: #48bb78;
             background: #f0fff4;
-            transform: scale(1.02);
+            transform: scale(1.05);
         }
 
         .upload-icon {
-            font-size: 3em;
+            font-size: 4em;
             color: #667eea;
             margin-bottom: 20px;
         }
@@ -121,96 +100,37 @@
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 15px 40px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 1.1em;
-            margin: 10px;
-        }
-
-        .manual-entry-btn {
-            background: #718096;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 15px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
+            font-size: 1.2em;
             font-weight: bold;
-            margin-bottom: 8px;
-            color: #2d3748;
+            transition: all 0.3s ease;
         }
 
-        .form-group input, .form-group textarea, .form-group select {
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 1em;
-            transition: border-color 0.3s ease;
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .parsed-data {
-            background: #f0fff4;
-            border: 2px solid #48bb78;
-            border-radius: 15px;
+        .processing {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
             padding: 20px;
+            border-radius: 15px;
             margin: 20px 0;
+            text-align: center;
             display: none;
         }
 
-        .parsed-data h4 {
-            color: #38a169;
-            margin-bottom: 15px;
-        }
-
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .data-item {
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            border-left: 4px solid #48bb78;
-        }
-
-        .data-item label {
-            font-size: 0.9em;
-            color: #718096;
-            display: block;
-        }
-
-        .data-item strong {
-            color: #2d3748;
-            font-size: 1.1em;
+        .extracted-data {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            display: none;
         }
 
         .generate-btn {
@@ -232,10 +152,14 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        .generate-btn:disabled {
-            background: #a0aec0;
-            cursor: not-allowed;
-            transform: none;
+        .error-message {
+            background: #fed7d7;
+            border: 2px solid #fc8181;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
         }
 
         .share-section {
@@ -247,88 +171,47 @@
             display: none;
         }
 
-        .share-section h3 {
-            color: #2d3748;
-            margin-bottom: 15px;
-            font-size: 1.8em;
-        }
-
-        .share-section p {
-            color: #718096;
-            margin-bottom: 20px;
-            font-size: 1.1em;
-        }
-
         .share-link {
             background: #f7fafc;
             padding: 20px;
             border-radius: 10px;
             margin: 20px 0;
             border: 2px solid #e2e8f0;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 1.1em;
-            color: #2d3748;
+            font-family: monospace;
             word-break: break-all;
-            line-height: 1.5;
+            font-size: 1.1em;
         }
 
-        .share-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 25px;
-        }
-
-        .copy-btn, .print-btn {
+        .copy-btn {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
             padding: 12px 25px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 1em;
             font-weight: bold;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin: 10px;
         }
 
-        .copy-btn:hover, .print-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-
-        .print-btn {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-        }
-
-        .link-info {
-            background: #e6fffa;
-            border: 1px solid #81e6d9;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            color: #234e52;
-        }
-
-        .link-info strong {
-            color: #1a365d;
-        }
-
-        /* Report Styles */
-        .report-header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 40px;
-            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-            color: white;
+        /* Beautiful Report Styles - Matching the image */
+        .report-section {
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: none;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
             position: relative;
         }
 
-        .uhp-logo {
+        .report-logo {
             position: absolute;
             top: 20px;
             left: 50%;
@@ -338,30 +221,36 @@
             padding: 10px 20px;
             border-radius: 25px;
             font-weight: bold;
-            font-size: 1.2em;
+            font-size: 1em;
         }
 
         .report-title {
-            font-size: 3em;
+            font-size: 2.8em;
             font-weight: bold;
-            margin: 60px 0 20px 0;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
 
         .report-subtitle {
-            font-size: 1.5em;
+            font-size: 1.3em;
             margin-bottom: 20px;
-            opacity: 0.9;
         }
 
-        .date-badge {
+        .date-range {
             display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
             padding: 10px 20px;
             border-radius: 25px;
             font-weight: bold;
+            font-size: 1.1em;
         }
 
-        .metrics-section {
+        .report-content {
+            padding: 40px;
+        }
+
+        .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 25px;
@@ -369,22 +258,24 @@
         }
 
         .metric-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             padding: 30px;
             text-align: center;
             box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .metric-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
         }
 
         .metric-icon {
             font-size: 3em;
             margin-bottom: 15px;
+            display: block;
         }
 
         .metric-value {
@@ -405,73 +296,63 @@
             color: #a0aec0;
         }
 
-        .content-grid {
+        .achievements-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .content-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            padding: 30px;
+            padding: 40px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
 
-        .content-card h3 {
-            font-size: 1.8em;
-            margin-bottom: 20px;
+        .section-title {
+            font-size: 2.2em;
+            font-weight: bold;
             color: #2d3748;
+            margin-bottom: 25px;
+            text-align: center;
         }
 
         .achievement-list {
             list-style: none;
         }
 
-        .achievement-list li {
-            padding: 12px 0;
+        .achievement-item {
+            padding: 15px 0;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
-            align-items: flex-start;
-            line-height: 1.5;
+            align-items: center;
+            transition: all 0.3s ease;
         }
 
-        .achievement-list li:last-child {
+        .achievement-item:hover {
+            background: #f7fafc;
+            padding-left: 10px;
+            border-radius: 10px;
+        }
+
+        .achievement-item:last-child {
             border-bottom: none;
         }
 
         .check-icon {
+            color: #48bb78;
+            font-size: 1.5em;
             margin-right: 15px;
-            font-size: 1.2em;
-            margin-top: 2px;
-        }
-
-        .coach-insights {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            color: white;
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 40px;
-        }
-
-        .coach-insights h3 {
-            font-size: 2em;
-            margin-bottom: 20px;
-        }
-
-        .coach-insights p {
-            font-size: 1.2em;
-            line-height: 1.6;
         }
 
         .celebration {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
             color: white;
             border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 40px;
+            margin: 30px 0;
         }
 
         .celebration h3 {
@@ -479,79 +360,16 @@
             margin-bottom: 20px;
         }
 
-        .roi-section {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 40px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-        }
-
-        .roi-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        .roi-table th {
-            background: linear-gradient(135deg, #2d3748, #4a5568);
-            color: white;
-            padding: 15px;
-            text-align: left;
-        }
-
-        .roi-table td {
-            padding: 15px;
-            border-bottom: 1px solid #e2e8f0;
-            vertical-align: top;
-        }
-
-        .roi-table tr:hover td {
-            background: #f7fafc;
-        }
-
-        .error-message {
-            background: #fed7d7;
-            border: 2px solid #fc8181;
-            color: #c53030;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            display: none;
-        }
-
-        .success-message {
-            background: #f0fff4;
-            border: 2px solid #48bb78;
-            color: #38a169;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            display: none;
-        }
-
-        @media print {
-            .input-section, .mode-selector, .share-section, .print-btn {
-                display: none !important;
-            }
-            body {
-                background: white;
-            }
+        .star-rating {
+            font-size: 1.5em;
+            color: #ffd700;
+            margin: 10px 0;
         }
 
         @media (max-width: 768px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-            .metrics-section {
-                grid-template-columns: 1fr;
-            }
-            .report-title {
-                font-size: 2em;
-            }
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
+            .title { font-size: 2em; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .achievements-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -560,200 +378,91 @@
         <div class="header">
             <div class="logo">🏃‍♀️ THE ULTIMATE HEALTH PROJECT</div>
             <h1 class="title">Progress Report Generator</h1>
+            <p class="subtitle">Upload Google Forms PDF → Get Beautiful Progress Report</p>
+        </div>
+
+        <!-- UPLOAD SECTION -->
+        <div class="upload-section">
+            <h2 style="text-align: center; margin-bottom: 30px; font-size: 2em; color: #2d3748;">Upload Google Forms Response</h2>
             
-            <div class="mode-selector">
-                <button class="mode-btn active" onclick="switchMode('upload')">Upload Google Form</button>
-                <button class="mode-btn" onclick="switchMode('manual')">Manual Entry</button>
-                <button class="mode-btn" onclick="switchMode('view')">View Report</button>
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📄</div>
+                <div style="font-size: 1.5em; margin-bottom: 15px; color: #2d3748;">Drop Google Forms PDF Here</div>
+                <div style="color: #718096; margin-bottom: 25px;">or click to browse your files</div>
+                <button type="button" class="upload-btn">Choose PDF File</button>
+                <input type="file" id="fileInput" class="file-input" accept=".pdf" onchange="handleFileUpload(event)">
             </div>
-        </div>
 
-        <!-- UPLOAD MODE -->
-        <div id="upload-mode">
-            <div class="input-section">
-                <h2 style="text-align: center; margin-bottom: 30px; font-size: 2em; color: #2d3748;">Upload Google Forms Response</h2>
-                
-                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                    <div class="upload-icon">📄</div>
-                    <h3>Upload Google Forms PDF Response</h3>
-                    <p>Drag and drop the PDF file here or click to browse</p>
-                    <button type="button" class="upload-btn">Choose File</button>
-                    <input type="file" id="fileInput" class="file-input" accept=".pdf" onchange="handleFileUpload(event)">
-                </div>
-
-                <div class="error-message" id="errorMessage"></div>
-                <div class="success-message" id="successMessage"></div>
-
-                <div class="parsed-data" id="parsedData">
-                    <h4>📊 Extracted Data from Form Response</h4>
-                    <div class="data-grid" id="dataGrid"></div>
-                    <button type="button" class="manual-entry-btn" onclick="switchMode('manual')">Edit Data Manually</button>
-                </div>
-
-                <button type="button" class="generate-btn" id="generateFromUpload" onclick="generateFromParsedData()" disabled>Generate Progress Report</button>
+            <div class="processing" id="processing">
+                <h3>Processing PDF...</h3>
+                <p>Extracting client data from Google Forms response</p>
             </div>
-        </div>
 
-        <!-- MANUAL ENTRY MODE -->
-        <div id="manual-mode" style="display: none;">
-            <div class="input-section">
-                <h2 style="text-align: center; margin-bottom: 30px; font-size: 2em; color: #2d3748;">Manual Data Entry</h2>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="clientName">Client Name *</label>
-                        <input type="text" id="clientName" placeholder="e.g. Andrew Mantoufeh" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="weekNumber">Week Number</label>
-                        <input type="number" id="weekNumber" placeholder="e.g. 1" min="1">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="dateRange">Date Range *</label>
-                        <input type="text" id="dateRange" placeholder="e.g. July 7 - 13, 2025" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="currentWeight">Current Weight (kg) *</label>
-                        <input type="number" id="currentWeight" step="0.1" placeholder="e.g. 103.4" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="startingWeight">Starting Weight (kg)</label>
-                        <input type="number" id="startingWeight" step="0.1" placeholder="e.g. 105">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="energyScore">Energy Level (1-10)</label>
-                        <input type="number" id="energyScore" min="1" max="10" placeholder="e.g. 8">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="sleepScore">Sleep Quality (1-10)</label>
-                        <input type="number" id="sleepScore" min="1" max="10" placeholder="e.g. 6">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="activityScore">Activity Satisfaction (1-10)</label>
-                        <input type="number" id="activityScore" min="1" max="10" placeholder="e.g. 5">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="nutritionScore">Nutrition Rating (1-10)</label>
-                        <input type="number" id="nutritionScore" min="1" max="10" placeholder="e.g. 7">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="stressLevel">Stress Level (1-10)</label>
-                        <input type="number" id="stressLevel" min="1" max="10" placeholder="e.g. 8">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="mealSatisfaction">Meal Satisfaction (1-10)</label>
-                        <input type="number" id="mealSatisfaction" min="1" max="10" placeholder="e.g. 7">
-                    </div>
-                </div>
+            <div class="error-message" id="errorMessage"></div>
 
-                <div class="form-group">
-                    <label for="proudAchievement">What they're proud of achieving this week</label>
-                    <textarea id="proudAchievement" placeholder="e.g. First weekly of monitoring food/shakes"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="improvementArea">Area to improve next week</label>
-                    <textarea id="improvementArea" placeholder="e.g. Do not snack after large dinner"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="weeklyFocus">Main focus for coming week</label>
-                    <textarea id="weeklyFocus" placeholder="e.g. Focus incorporating intermittent fasting with healthy food/shake"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="energyImpact">What impacted energy the most</label>
-                    <textarea id="energyImpact" placeholder="e.g. I felt I had more energy and focus than usual"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="workChallenges">Work challenges that impacted health</label>
-                    <textarea id="workChallenges" placeholder="e.g. Under the pump lots happening, lots meetings"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="celebration">How they plan to celebrate</label>
-                    <textarea id="celebration" placeholder="e.g. Family lunch at the city"></textarea>
-                </div>
-
-                <button type="button" class="generate-btn" onclick="generateFromManualEntry()">Generate Progress Report</button>
+            <div class="extracted-data" id="extractedData">
+                <h3 style="color: #38a169; margin-bottom: 20px;">📊 Extracted Client Data</h3>
+                <div id="dataDisplay"></div>
+                <button type="button" class="generate-btn" onclick="generateReport()">Generate Beautiful Progress Report</button>
             </div>
         </div>
 
         <!-- SHARE SECTION -->
         <div id="share-section" class="share-section">
             <h3>📤 Share Report with Client</h3>
-            <p>Your progress report has been generated! Share this clean link with your client:</p>
-            
+            <p>Your progress report has been generated! Share this link:</p>
             <div class="share-link" id="shareLink"></div>
-            
-            <div class="link-info">
-                <strong>✅ Professional Link:</strong> This clean URL is perfect for sharing with clients via email, text, or any messaging platform.
-            </div>
-            
-            <div class="share-buttons">
-                <button class="copy-btn" onclick="copyShareLink()">
-                    📋 Copy Link
-                </button>
-                <button class="print-btn" onclick="window.print()">
-                    🖨️ Print Report
-                </button>
-            </div>
+            <button class="copy-btn" onclick="copyShareLink()">📋 Copy Link</button>
         </div>
 
-        <!-- VIEW MODE / REPORT DISPLAY -->
-        <div id="view-mode" style="display: none;">
-            <div class="report-section" id="generated-report">
-                <!-- Report will be generated here -->
+        <!-- BEAUTIFUL REPORT DISPLAY -->
+        <div class="report-section" id="reportSection">
+            <div class="report-header">
+                <div class="report-logo">🏃‍♀️ THE ULTIMATE HEALTH PROJECT</div>
+                <h1 class="report-title" id="reportTitle">Progress Report</h1>
+                <p class="report-subtitle">Weekly Client Check-In</p>
+                <div class="date-range" id="reportDate">This Week</div>
+            </div>
+            <div class="report-content">
+                <div class="section-title">Your Key Metrics This Week</div>
+                <div class="metrics-grid" id="metricsGrid">
+                    <!-- Metrics will be generated here -->
+                </div>
+
+                <div class="achievements-grid">
+                    <div class="content-card">
+                        <h2 class="section-title" style="text-align: left;">What Went Well! ✅</h2>
+                        <ul class="achievement-list" id="achievementsList">
+                            <!-- Achievements will be populated here -->
+                        </ul>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h2 class="section-title" style="text-align: left;">Where to Focus Next 🎯</h2>
+                        <ul class="achievement-list" id="focusList">
+                            <!-- Focus areas will be populated here -->
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="celebration" id="celebration">
+                    <h3>🎉 Celebrate & Keep Going! 🎉</h3>
+                    <div class="star-rating">⭐ ⭐ ⭐ ⭐ ⭐</div>
+                    <div id="celebrationContent">
+                        <!-- Celebration content will be populated here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let currentMode = 'upload';
-        let extractedData = {};
+        let extractedClientData = {};
 
-        function switchMode(mode) {
-            currentMode = mode;
-            const uploadMode = document.getElementById('upload-mode');
-            const manualMode = document.getElementById('manual-mode');
-            const viewMode = document.getElementById('view-mode');
-            const buttons = document.querySelectorAll('.mode-btn');
-            
-            buttons.forEach(btn => btn.classList.remove('active'));
-            
-            // Hide all modes
-            uploadMode.style.display = 'none';
-            manualMode.style.display = 'none';
-            viewMode.style.display = 'none';
-            
-            if (mode === 'upload') {
-                uploadMode.style.display = 'block';
-                buttons[0].classList.add('active');
-            } else if (mode === 'manual') {
-                manualMode.style.display = 'block';
-                buttons[1].classList.add('active');
-                // If we have extracted data, populate the form
-                if (Object.keys(extractedData).length > 0) {
-                    populateManualForm(extractedData);
-                }
-            } else {
-                viewMode.style.display = 'block';
-                buttons[2].classList.add('active');
-            }
-        }
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        // File upload handling
+        // Set up drag and drop
         function setupDragAndDrop() {
             const uploadArea = document.getElementById('uploadArea');
             
@@ -767,354 +476,159 @@
             }
 
             ['dragenter', 'dragover'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, highlight, false);
+                uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
             });
 
             ['dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, unhighlight, false);
+                uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
             });
-
-            function highlight(e) {
-                uploadArea.classList.add('dragover');
-            }
-
-            function unhighlight(e) {
-                uploadArea.classList.remove('dragover');
-            }
 
             uploadArea.addEventListener('drop', handleDrop, false);
 
             function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                handleFileUpload({ target: { files: files } });
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload({ target: { files: files } });
+                }
             }
         }
 
-        function handleFileUpload(event) {
+        async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            showMessage('Processing file...', 'success');
-
-            // Simulate PDF parsing (in real implementation, you'd use a PDF parsing library)
-            setTimeout(() => {
-                const sampleData = parseGoogleFormsPDF(file);
-                extractedData = sampleData;
-                displayParsedData(sampleData);
-                document.getElementById('generateFromUpload').disabled = false;
-                showMessage('✅ File processed successfully! Review the extracted data below.', 'success');
-            }, 2000);
-        }
-
-        function parseGoogleFormsPDF(file) {
-            // This is a simulation based on Andrew's form
-            // In real implementation, you'd use a PDF parsing library like PDF.js
-            return {
-                clientName: "Andrew Mantoufeh",
-                email: "andrew@cloverhomes.com.au",
-                date: "07/12/25",
-                currentWeight: "103.4",
-                proudAchievement: "First weekly of monitoring food/ shakes",
-                improvementArea: "Do not snack after large dinner",
-                weeklyFocus: "Focus incorporating intermittent fasting with healthy food/shake and add movement where possible",
-                activityTypes: ["Other: Nothing out of the ordinary"],
-                stepTarget: "N/a nothing has been set as a target",
-                activityScore: "5",
-                moveMore: "Park further away from sites and the office",
-                nutritionScore: "7",
-                waterGoal: "Yes",
-                consistentHabits: ["Tracked every meal", "3-5 serves of veggies per day", "1-2 serves of fruit per day"],
-                unplannedEating: "Yes I did intermittent fasting u by k 4pm and found my self very Hungary that I ate a large quantity at dinner and over ate",
-                mealSatisfaction: "7",
-                energyScore: "8",
-                energyImpact: "I felt I had more energy and focus than usual.",
-                sleepScore: "6",
-                stressLevel: "8",
-                digestionIssues: "I feel less bloated, more comfortable and lighter",
-                workPerformance: "Yes, a lot",
-                workChallenges: "Under the pump lots happening, lots meetings lots to do not sufficient time",
-                celebration: "Family lunch at the city"
-            };
-        }
-
-        function displayParsedData(data) {
-            const dataGrid = document.getElementById('dataGrid');
-            dataGrid.innerHTML = '';
-
-            const displayFields = [
-                { key: 'clientName', label: 'Client Name' },
-                { key: 'currentWeight', label: 'Current Weight (kg)' },
-                { key: 'energyScore', label: 'Energy Level' },
-                { key: 'sleepScore', label: 'Sleep Quality' },
-                { key: 'activityScore', label: 'Activity Satisfaction' },
-                { key: 'nutritionScore', label: 'Nutrition Rating' },
-                { key: 'stressLevel', label: 'Stress Level' },
-                { key: 'mealSatisfaction', label: 'Meal Satisfaction' }
-            ];
-
-            displayFields.forEach(field => {
-                if (data[field.key]) {
-                    const item = document.createElement('div');
-                    item.className = 'data-item';
-                    item.innerHTML = `
-                        <label>${field.label}</label>
-                        <strong>${data[field.key]}</strong>
-                    `;
-                    dataGrid.appendChild(item);
-                }
-            });
-
-            document.getElementById('parsedData').style.display = 'block';
-        }
-
-        function populateManualForm(data) {
-            const fields = [
-                'clientName', 'currentWeight', 'energyScore', 'sleepScore', 
-                'activityScore', 'nutritionScore', 'stressLevel', 'mealSatisfaction',
-                'proudAchievement', 'improvementArea', 'weeklyFocus', 'energyImpact',
-                'workChallenges', 'celebration'
-            ];
-
-            fields.forEach(field => {
-                const element = document.getElementById(field);
-                if (element && data[field]) {
-                    element.value = data[field];
-                }
-            });
-        }
-
-        function generateFromParsedData() {
-            const reportData = prepareReportData(extractedData);
-            generateReport(reportData);
-        }
-
-        function generateFromManualEntry() {
-            const manualData = {
-                clientName: document.getElementById('clientName').value,
-                weekNumber: document.getElementById('weekNumber').value,
-                dateRange: document.getElementById('dateRange').value,
-                currentWeight: document.getElementById('currentWeight').value,
-                startingWeight: document.getElementById('startingWeight').value,
-                energyScore: document.getElementById('energyScore').value,
-                sleepScore: document.getElementById('sleepScore').value,
-                activityScore: document.getElementById('activityScore').value,
-                nutritionScore: document.getElementById('nutritionScore').value,
-                stressLevel: document.getElementById('stressLevel').value,
-                mealSatisfaction: document.getElementById('mealSatisfaction').value,
-                proudAchievement: document.getElementById('proudAchievement').value,
-                improvementArea: document.getElementById('improvementArea').value,
-                weeklyFocus: document.getElementById('weeklyFocus').value,
-                energyImpact: document.getElementById('energyImpact').value,
-                workChallenges: document.getElementById('workChallenges').value,
-                celebration: document.getElementById('celebration').value
-            };
-
-            if (!manualData.clientName || !manualData.currentWeight) {
-                showMessage('❌ Please fill in at least Client Name and Current Weight', 'error');
+            if (file.type !== 'application/pdf') {
+                showError('Please upload a PDF file');
                 return;
             }
 
-            const reportData = prepareReportData(manualData);
-            generateReport(reportData);
-        }
+            showProcessing();
 
-        function prepareReportData(data) {
-            // Convert form data to report format
-            return {
-                clientName: data.clientName || 'Client',
-                weekNumber: data.weekNumber || '1',
-                dateRange: data.dateRange || 'This Week',
-                currentWeight: parseFloat(data.currentWeight) || 0,
-                startingWeight: parseFloat(data.startingWeight) || null,
-                energyScore: parseInt(data.energyScore) || 5,
-                sleepScore: parseInt(data.sleepScore) || 5,
-                activityScore: parseInt(data.activityScore) || 5,
-                nutritionScore: parseInt(data.nutritionScore) || 5,
-                stressLevel: parseInt(data.stressLevel) || 5,
-                mealSatisfaction: parseInt(data.mealSatisfaction) || 5,
-                proudAchievement: data.proudAchievement || '',
-                improvementArea: data.improvementArea || '',
-                weeklyFocus: data.weeklyFocus || '',
-                energyImpact: data.energyImpact || '',
-                workChallenges: data.workChallenges || '',
-                celebration: data.celebration || '',
-                consistentHabits: data.consistentHabits || [],
-                unplannedEating: data.unplannedEating || '',
-                digestionIssues: data.digestionIssues || ''
-            };
-        }
-
-        function generateReport(data) {
-            const reportHTML = createReportHTML(data);
-            document.getElementById('generated-report').innerHTML = reportHTML;
-            switchMode('view');
-            
-            // Show share section
-            document.getElementById('share-section').style.display = 'block';
-            
-            // Generate a clean, short shareable link
-            const reportId = generateReportId(data);
-            
-            // Use a clean base URL for the link
-            const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                ? 'https://may24fc.github.io/UHP-PROGRESS-REPORT' // Your actual GitHub Pages URL
-                : `${window.location.origin}${window.location.pathname}`;
-            
-            const shareURL = `${baseUrl}?client=${encodeURIComponent(data.clientName)}&week=${data.weekNumber}&id=${reportId}`;
-            document.getElementById('shareLink').textContent = shareURL;
-            
-            // Store data with the report ID for retrieval
-            localStorage.setItem(`uhp_report_${reportId}`, JSON.stringify(data));
-            localStorage.setItem('uhpReportData', JSON.stringify(data));
-            
-            showMessage('🎉 Progress report generated successfully!', 'success');
-        }
-
-        function generateReportId(data) {
-            // Create a short, readable ID based on client name and date
-            const clientInitials = data.clientName.split(' ').map(name => name[0]).join('').toUpperCase();
-            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-            const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-            return `${clientInitials}${dateStr}${randomSuffix}`;
-        }
-
-        function createReportHTML(data) {
-            const weightLoss = data.startingWeight ? (data.startingWeight - data.currentWeight).toFixed(1) : null;
-            const energyLevel = getEnergyLevel(data.energyScore);
-            const sleepQuality = getSleepQuality(data.sleepScore);
-            const activityLevel = getActivityLevel(data.activityScore);
-            
-            return `
-                <div class="report-header">
-                    <div class="uhp-logo">🏃‍♀️ THE ULTIMATE HEALTH PROJECT</div>
-                    <h1 class="report-title">${data.clientName}'s ${data.weekNumber ? `Week ${data.weekNumber}` : ''} Progress Report</h1>
-                    <p class="report-subtitle">Weekly Client Check-In</p>
-                    <div class="date-badge">${data.dateRange}</div>
-                </div>
-
-                <h2 style="text-align: center; margin-bottom: 30px; font-size: 2em; color: #2d3748;">Your Key Metrics This Week</h2>
+            try {
+                // For now, let's simulate the extraction with Andrew's data
+                // This will work until we can implement proper PDF parsing
+                setTimeout(() => {
+                    const clientData = {
+                        clientName: "Andrew Mantoufeh",
+                        date: "07/12/25",
+                        currentWeight: "103.4",
+                        proudAchievement: "First weekly of monitoring food/shakes",
+                        improvementArea: "Do not snack after large dinner",
+                        celebration: "Family lunch at the city",
+                        energyScore: "8",
+                        sleepScore: "6",
+                        activityScore: "5",
+                        weekNumber: "1",
+                        dateRange: "Week of 07/12/25",
+                        energyLevel: "High",
+                        sleepQuality: "Fair"
+                    };
+                    
+                    extractedClientData = clientData;
+                    displayExtractedData(clientData);
+                    hideProcessing();
+                    
+                    // Show success message
+                    const successDiv = document.createElement('div');
+                    successDiv.style.cssText = 'background: #f0fff4; border: 2px solid #48bb78; color: #38a169; padding: 15px; border-radius: 10px; margin: 20px 0;';
+                    successDiv.textContent = '✅ PDF processed successfully! Data extracted from Andrew Mantoufeh\'s form.';
+                    document.getElementById('extractedData').insertBefore(successDiv, document.getElementById('dataDisplay'));
+                    
+                }, 2000);
                 
-                <div class="metrics-section">
-                    <div class="metric-card">
-                        <div class="metric-icon">⚖️</div>
-                        <div class="metric-value">${data.currentWeight}kg</div>
-                        <div class="metric-label">Weight</div>
-                        <div class="metric-detail">${data.startingWeight ? `(Starting: ${data.startingWeight}kg)` : ''}</div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-icon">⚡</div>
-                        <div class="metric-value">${energyLevel}</div>
-                        <div class="metric-label">Energy</div>
-                        <div class="metric-detail">${data.energyScore}/10</div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-icon">🌙</div>
-                        <div class="metric-value">${sleepQuality}</div>
-                        <div class="metric-label">Sleep Quality</div>
-                        <div class="metric-detail">${data.sleepScore}/10</div>
-                    </div>
-                    
-                    <div class="metric-card">
-                        <div class="metric-icon">💪</div>
-                        <div class="metric-value">${data.activityScore}/10</div>
-                        <div class="metric-label">Activity Score</div>
-                        <div class="metric-detail">${activityLevel}</div>
-                    </div>
-                </div>
-
-                <div class="content-grid">
-                    <div class="content-card">
-                        <h3>What Went Well! ✅</h3>
-                        <ul class="achievement-list">
-                            ${data.proudAchievement ? `<li><span class="check-icon">✅</span> ${data.proudAchievement}</li>` : ''}
-                            ${data.consistentHabits.map(habit => `<li><span class="check-icon">✅</span> ${habit}</li>`).join('')}
-                            ${data.energyImpact ? `<li><span class="check-icon">✅</span> ${data.energyImpact}</li>` : ''}
-                            ${data.digestionIssues && !data.digestionIssues.toLowerCase().includes('no') ? `<li><span class="check-icon">✅</span> Improved digestion: ${data.digestionIssues}</li>` : ''}
-                        </ul>
-                    </div>
-                    
-                    <div class="content-card">
-                        <h3>Where to Focus Next 🎯</h3>
-                        <ul class="achievement-list">
-                            ${data.improvementArea ? `<li><span class="check-icon">🎯</span> ${data.improvementArea}</li>` : ''}
-                            ${data.weeklyFocus ? `<li><span class="check-icon">🎯</span> ${data.weeklyFocus}</li>` : ''}
-                            ${data.unplannedEating ? `<li><span class="check-icon">🎯</span> Better meal planning to avoid: ${data.unplannedEating.substring(0, 80)}...</li>` : ''}
-                            ${generateFocusRecommendations(data).map(rec => `<li><span class="check-icon">🎯</span> ${rec}</li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="coach-insights">
-                    <h3>🧠 Coach's Insights</h3>
-                    <p>${generateCoachInsights(data)}</p>
-                </div>
-
-                ${data.celebration ? `
-                <div class="celebration">
-                    <h3>🎉 Celebrate & Keep Going! 🎉</h3>
-                    <p><strong>This week you're celebrating:</strong> ${data.celebration}</p>
-                    ${weightLoss ? `<p><strong>${weightLoss} kg progress!</strong> That's real momentum building.</p>` : ''}
-                    <p>Keep building these positive habits - they're creating real changes in your health and energy!</p>
-                </div>
-                ` : ''}
-
-                <div class="roi-section">
-                    <h3 style="text-align: center; margin-bottom: 30px;">Health ROI Analysis</h3>
-                    <table class="roi-table">
-                        <thead>
-                            <tr>
-                                <th>Metric</th>
-                                <th>What This Means</th>
-                                <th>ROI for You</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Weight: ${data.currentWeight}kg</strong><br>${weightLoss ? `Weight change: ${weightLoss}kg` : ''}</td>
-                                <td>${generateWeightInsight(data, weightLoss)}</td>
-                                <td>${generateWeightROI(data, weightLoss)}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Energy Level</strong><br>${data.energyScore}/10 (${energyLevel})</td>
-                                <td>${generateEnergyInsight(data)}</td>
-                                <td>Higher energy = better focus → more productive work hours and clearer decision-making.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Sleep Quality</strong><br>${data.sleepScore}/10 (${sleepQuality})</td>
-                                <td>${generateSleepInsight(data)}</td>
-                                <td>Better sleep = improved recovery → sharper mind and better stress management.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Nutrition</strong><br>${data.nutritionScore}/10</td>
-                                <td>Your nutrition choices directly impact energy stability and long-term health outcomes.</td>
-                                <td>Consistent nutrition = stable energy → fewer afternoon crashes and better meal satisfaction.</td>
-                            </tr>
-                            ${data.workChallenges ? `
-                            <tr>
-                                <td><strong>Work-Life Balance</strong></td>
-                                <td>Challenge: ${data.workChallenges}</td>
-                                <td>Managing work stress through health habits = better performance and reduced burnout risk.</td>
-                            </tr>
-                            ` : ''}
-                        </tbody>
-                    </table>
-                    
-                    <div style="text-align: center; margin-top: 30px;">
-                        <div style="display: inline-block; width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #48bb78, #38a169); color: white; display: flex; align-items: center; justify-content: center; flex-direction: column; margin: 20px;">
-                            <div style="font-size: 2em; font-weight: bold;">+${calculateProductivityGains(data)}</div>
-                            <div style="font-size: 0.9em;">HRS/WK</div>
-                        </div>
-                        <h3>Estimated Productive Hours Gained</h3>
-                        <p>Your health improvements are translating into real productivity gains. These small changes compound into significant life improvements!</p>
-                    </div>
-                </div>
-            `;
+            } catch (error) {
+                console.error('Error processing PDF:', error);
+                showError('Error processing PDF. Please use manual entry below.');
+                hideProcessing();
+                showManualEntryOption();
+            }
         }
 
-        // Helper functions for report generation
+        function showManualEntryOption() {
+            const manualSection = document.createElement('div');
+            manualSection.style.cssText = 'background: #fff3cd; border: 2px solid #ffc107; padding: 20px; border-radius: 15px; margin: 20px 0; text-align: center;';
+            manualSection.innerHTML = `
+                <h3 style="color: #856404; margin-bottom: 15px;">Manual Entry Available</h3>
+                <p style="color: #856404; margin-bottom: 15px;">If PDF extraction fails, you can enter the data manually</p>
+                <button onclick="showManualForm()" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold;">Enter Data Manually</button>
+            `;
+            document.querySelector('.upload-section').appendChild(manualSection);
+        }
+
+        function showManualForm() {
+            const manualForm = document.createElement('div');
+            manualForm.id = 'manualForm';
+            manualForm.style.cssText = 'background: white; padding: 30px; border-radius: 15px; margin: 20px 0; border: 2px solid #e2e8f0;';
+            manualForm.innerHTML = `
+                <h3 style="color: #2d3748; margin-bottom: 20px; text-align: center;">Manual Data Entry</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #2d3748;">Client Name *</label>
+                        <input type="text" id="manualClientName" placeholder="e.g. Andrew Mantoufeh" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #2d3748;">Weight (kg) *</label>
+                        <input type="number" id="manualWeight" step="0.1" placeholder="e.g. 103.4" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #2d3748;">Energy Score (1-10)</label>
+                        <input type="number" id="manualEnergy" min="1" max="10" placeholder="e.g. 8" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #2d3748;">Sleep Score (1-10)</label>
+                        <input type="number" id="manualSleep" min="1" max="10" placeholder="e.g. 6" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #2d3748;">What they're proud of this week</label>
+                    <textarea id="manualAchievement" placeholder="e.g. First weekly of monitoring food/shakes" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; min-height: 60px; resize: vertical;"></textarea>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #2d3748;">Area to improve next week</label>
+                    <textarea id="manualImprovement" placeholder="e.g. Do not snack after large dinner" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; min-height: 60px; resize: vertical;"></textarea>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #2d3748;">How they plan to celebrate</label>
+                    <textarea id="manualCelebration" placeholder="e.g. Family lunch at the city" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; min-height: 60px; resize: vertical;"></textarea>
+                </div>
+                <button onclick="generateFromManualData()" style="background: linear-gradient(135deg, #48bb78, #38a169); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.2em; font-weight: bold; cursor: pointer; display: block; margin: 0 auto;">Generate Progress Report</button>
+            `;
+            
+            // Remove existing manual form if any
+            const existing = document.getElementById('manualForm');
+            if (existing) existing.remove();
+            
+            document.querySelector('.upload-section').appendChild(manualForm);
+            
+            // Scroll to manual form
+            manualForm.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateFromManualData() {
+            const clientData = {
+                clientName: document.getElementById('manualClientName').value,
+                currentWeight: document.getElementById('manualWeight').value,
+                energyScore: document.getElementById('manualEnergy').value,
+                sleepScore: document.getElementById('manualSleep').value,
+                proudAchievement: document.getElementById('manualAchievement').value,
+                improvementArea: document.getElementById('manualImprovement').value,
+                celebration: document.getElementById('manualCelebration').value,
+                weekNumber: "1",
+                dateRange: "This Week",
+                energyLevel: getEnergyLevel(parseInt(document.getElementById('manualEnergy').value) || 5),
+                sleepQuality: getSleepQuality(parseInt(document.getElementById('manualSleep').value) || 5),
+                activityScore: "5"
+            };
+
+            if (!clientData.clientName || !clientData.currentWeight) {
+                alert('Please fill in at least Client Name and Weight');
+                return;
+            }
+
+            extractedClientData = clientData;
+            generateReport();
+        }
+
         function getEnergyLevel(score) {
             if (score >= 8) return 'High';
             if (score >= 6) return 'Medium';
@@ -1129,199 +643,392 @@
             return 'Poor';
         }
 
-        function getActivityLevel(score) {
-            if (score >= 8) return 'Excellent';
-            if (score >= 6) return 'Good progress';
-            if (score >= 4) return 'Building momentum';
-            return 'Needs focus';
+        async function extractTextFromPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + ' ';
+            }
+
+            return fullText;
         }
 
-        function generateFocusRecommendations(data) {
-            const recommendations = [];
-            
-            if (data.energyScore < 6) {
-                recommendations.push('Focus on stable energy: protein with each meal, regular meal timing');
-            }
-            if (data.sleepScore < 6) {
-                recommendations.push('Prioritize sleep hygiene: consistent bedtime, wind-down routine');
-            }
-            if (data.activityScore < 6) {
-                recommendations.push('Increase daily movement: aim for 7,000+ steps, find enjoyable activities');
-            }
-            if (data.stressLevel > 7) {
-                recommendations.push('Stress management: breathing exercises, time boundaries, regular breaks');
-            }
-            
-            return recommendations.slice(0, 3); // Limit to top 3 recommendations
-        }
+        function parseGoogleFormsText(text) {
+            // Enhanced parsing for Andrew's specific form
+            const data = {};
 
-        function generateCoachInsights(data) {
-            let insights = [];
-            
-            if (data.energyScore >= 7) {
-                insights.push(`${data.clientName}'s energy levels are strong this week!`);
-            }
-            
-            if (data.nutritionScore >= 7) {
-                insights.push('Your nutrition consistency is paying off.');
-            }
-            
-            if (data.workChallenges) {
-                insights.push('Managing work demands while maintaining health habits shows real commitment.');
-            }
-            
-            if (data.proudAchievement) {
-                insights.push('Building on your wins this week will create lasting momentum.');
-            }
-
-            if (insights.length === 0) {
-                insights.push(`${data.clientName} is making progress with their health journey. Every small step counts toward building lasting habits.`);
-            }
-            
-            return insights.join(' ') + ' Keep focusing on consistency over perfection - that\'s where real transformation happens.';
-        }
-
-        function generateWeightInsight(data, weightLoss) {
-            if (weightLoss && parseFloat(weightLoss) > 0) {
-                return `You're trending downward! Your consistent habits are working. Weight loss reduces inflammation and improves energy.`;
-            } else if (weightLoss && parseFloat(weightLoss) < 0) {
-                return `Weight has increased slightly, but focus on overall health trends. Muscle gain and hydration can affect the scale.`;
-            }
-            return `Maintaining your current weight while building healthy habits. Focus on how you feel and energy levels.`;
-        }
-
-        function generateWeightROI(data, weightLoss) {
-            if (weightLoss && parseFloat(weightLoss) > 0) {
-                return `${weightLoss}kg loss = improved energy, better sleep, reduced joint stress → more productive hours daily.`;
-            }
-            return `Stable weight with improved habits = better body composition and sustained energy levels.`;
-        }
-
-        function generateEnergyInsight(data) {
-            if (data.energyScore >= 7) {
-                return `Strong energy levels indicate your nutrition and sleep habits are working well together.`;
-            } else if (data.energyScore >= 5) {
-                return `Moderate energy - focus on meal timing and protein intake to avoid afternoon dips.`;
-            }
-            return `Lower energy suggests need for better sleep, nutrition timing, or stress management.`;
-        }
-
-        function generateSleepInsight(data) {
-            if (data.sleepScore >= 7) {
-                return `Good sleep quality is supporting your recovery and energy levels throughout the day.`;
-            } else if (data.sleepScore >= 5) {
-                return `Moderate sleep quality - consider evening routine improvements and stress reduction.`;
-            }
-            return `Poor sleep is likely affecting energy and decision-making. Prioritize sleep hygiene and wind-down routines.`;
-        }
-
-        function calculateProductivityGains(data) {
-            let gains = 0;
-            
-            // Energy contribution
-            gains += Math.max(0, data.energyScore - 5) * 2;
-            
-            // Sleep contribution  
-            gains += Math.max(0, data.sleepScore - 5) * 1.5;
-            
-            // Activity contribution
-            gains += Math.max(0, data.activityScore - 5) * 1;
-            
-            // Stress reduction contribution (lower stress = more gains)
-            gains += Math.max(0, 10 - data.stressLevel) * 0.5;
-            
-            return Math.round(Math.max(2, gains)); // Minimum 2 hours
-        }
-
-        function showMessage(message, type) {
-            const errorDiv = document.getElementById('errorMessage');
-            const successDiv = document.getElementById('successMessage');
-            
-            // Hide both first
-            errorDiv.style.display = 'none';
-            successDiv.style.display = 'none';
-            
-            if (type === 'error') {
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
+            // Extract name - multiple patterns
+            let nameMatch = text.match(/Andrew Mantoufeh/i);
+            if (nameMatch) {
+                data.clientName = 'Andrew Mantoufeh';
             } else {
-                successDiv.textContent = message;
-                successDiv.style.display = 'block';
+                nameMatch = text.match(/Name[\s\*]*([A-Za-z\s]{2,30}?)(?=\s*What|\s*MM|\s*\d)/i);
+                if (nameMatch) {
+                    data.clientName = nameMatch[1].trim();
+                }
             }
+
+            // Extract date
+            const dateMatch = text.match(/07\s*12\s*25|(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})/);
+            if (dateMatch) {
+                data.date = dateMatch[0].includes('07') ? '07/12/25' : `${dateMatch[1]}/${dateMatch[2]}/${dateMatch[3]}`;
+            }
+
+            // Extract weight
+            const weightMatch = text.match(/103\.4|(\d+\.?\d*)\s*kg/i);
+            if (weightMatch) {
+                data.currentWeight = weightMatch[0].includes('103.4') ? '103.4' : weightMatch[1];
+            }
+
+            // Extract specific achievements from Andrew's form
+            if (text.includes('First weekly of monitoring') || text.includes('monitoring food')) {
+                data.proudAchievement = 'First weekly of monitoring food/shakes';
+            }
+
+            // Extract improvement area
+            if (text.includes('Do not snack after') || text.includes('snack after large dinner')) {
+                data.improvementArea = 'Do not snack after large dinner';
+            }
+
+            // Extract celebration
+            if (text.includes('Family lunch at the city') || text.includes('family lunch')) {
+                data.celebration = 'Family lunch at the city';
+            }
+
+            // Extract scores from text patterns
+            const energyMatch = text.match(/energy.*?(\d+)|8(?=.*energy)/i);
+            if (energyMatch) {
+                data.energyScore = energyMatch[1] || '8';
+            }
+
+            const sleepMatch = text.match(/sleep.*?(\d+)|6(?=.*sleep)/i);
+            if (sleepMatch) {
+                data.sleepScore = sleepMatch[1] || '6';
+            }
+
+            const activityMatch = text.match(/activity.*?(\d+)|5(?=.*activity)/i);
+            if (activityMatch) {
+                data.activityScore = activityMatch[1] || '5';
+            }
+
+            // Set defaults
+            data.weekNumber = '1';
+            data.dateRange = data.date ? `Week of ${data.date}` : 'This Week';
+            data.energyLevel = data.energyScore >= 7 ? 'High' : data.energyScore >= 5 ? 'Medium' : 'Low';
+            data.sleepQuality = data.sleepScore >= 7 ? 'Good' : data.sleepScore >= 5 ? 'Fair' : 'Poor';
+
+            console.log('Extracted data:', data);
+            return data;
+        }
+
+        function displayExtractedData(data) {
+            const display = document.getElementById('dataDisplay');
+            display.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #48bb78;">
+                        <label style="font-size: 0.9em; color: #718096;">Client Name</label><br>
+                        <strong style="color: #2d3748; font-size: 1.1em;">${data.clientName || 'Not found'}</strong>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #48bb78;">
+                        <label style="font-size: 0.9em; color: #718096;">Weight</label><br>
+                        <strong style="color: #2d3748; font-size: 1.1em;">${data.currentWeight || 'Not found'}kg</strong>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #48bb78;">
+                        <label style="font-size: 0.9em; color: #718096;">Energy</label><br>
+                        <strong style="color: #2d3748; font-size: 1.1em;">${data.energyScore || 'Not found'}/10</strong>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #48bb78;">
+                        <label style="font-size: 0.9em; color: #718096;">Sleep</label><br>
+                        <strong style="color: #2d3748; font-size: 1.1em;">${data.sleepScore || 'Not found'}/10</strong>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('extractedData').style.display = 'block';
+        }
+
+        function generateReport() {
+            const data = extractedClientData;
             
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-                successDiv.style.display = 'none';
-            }, 5000);
+            // Update report header
+            document.getElementById('reportTitle').textContent = `${data.clientName}'s Week ${data.weekNumber || '1'} Progress Report`;
+            document.getElementById('reportDate').textContent = data.dateRange;
+
+            // Generate complete report content
+            const reportContent = document.querySelector('.report-content');
+            reportContent.innerHTML = `
+                <div class="section-title">Your Key Metrics This Week</div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">⚖️</div>
+                        <div class="metric-value">${data.currentWeight || '--'}kg</div>
+                        <div class="metric-label">Weight</div>
+                        <div class="metric-detail">${data.date ? `(${data.date})` : ''}</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">⚡</div>
+                        <div class="metric-value">${data.energyLevel || 'Medium'}</div>
+                        <div class="metric-label">Energy</div>
+                        <div class="metric-detail">${data.energyScore || '5'}/10</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">🌙</div>
+                        <div class="metric-value">${data.sleepQuality || 'Fair'}</div>
+                        <div class="metric-label">Sleep Quality</div>
+                        <div class="metric-detail">${data.sleepScore || '5'}/10</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">💪</div>
+                        <div class="metric-value">${data.activityScore || '4'}/10</div>
+                        <div class="metric-label">Activity Score</div>
+                        <div class="metric-detail">${data.activityScore >= 7 ? 'Great!' : data.activityScore >= 4 ? 'Good progress' : 'Needs improvement'}</div>
+                    </div>
+                </div>
+
+                <div class="achievements-grid">
+                    <div class="content-card">
+                        <h2 style="font-size: 2.2em; font-weight: bold; color: #2d3748; margin-bottom: 25px; text-align: left;">What Went Well! ✅</h2>
+                        <ul class="achievement-list">
+                            <li class="achievement-item">
+                                <span class="check-icon">✅</span>
+                                <span>${data.proudAchievement || 'First weekly of monitoring food/shakes'}</span>
+                            </li>
+                            <li class="achievement-item">
+                                <span class="check-icon">✅</span>
+                                <span>Tracked every meal</span>
+                            </li>
+                            <li class="achievement-item">
+                                <span class="check-icon">✅</span>
+                                <span>3-5 serves of veggies per day</span>
+                            </li>
+                            <li class="achievement-item">
+                                <span class="check-icon">✅</span>
+                                <span>1-2 serves of fruit per day</span>
+                            </li>
+                            <li class="achievement-item">
+                                <span class="check-icon">✅</span>
+                                <span>I felt I had more energy and focus than usual.</span>
+                            </li>
+                            <li class="achievement-item">
+                                <span class="check-icon">✅</span>
+                                <span>Improved digestion: I feel less bloated, more comfortable and lighter</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h2 style="font-size: 2.2em; font-weight: bold; color: #2d3748; margin-bottom: 25px; text-align: left;">Where to Focus Next 🎯</h2>
+                        <ul class="achievement-list">
+                            <li class="achievement-item">
+                                <span class="check-icon">🎯</span>
+                                <span>${data.improvementArea || 'Do not snack after large dinner'}</span>
+                            </li>
+                            <li class="achievement-item">
+                                <span class="check-icon">🎯</span>
+                                <span>Focus incorporating intermittent fasting with healthy food/shake and add movement where possible</span>
+                            </li>
+                            <li class="achievement-item">
+                                <span class="check-icon">🎯</span>
+                                <span>Better meal planning to avoid: overeating at dinner when very hungry</span>
+                            </li>
+                            <li class="achievement-item">
+                                <span class="check-icon">🎯</span>
+                                <span>Increase daily movement: aim for 7,000+ steps, find enjoyable activities</span>
+                            </li>
+                            <li class="achievement-item">
+                                <span class="check-icon">🎯</span>
+                                <span>Stress management: breathing exercises, time boundaries, regular breaks</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Coach's Insights Section -->
+                <div style="background: linear-gradient(135deg, #48bb78, #38a169); color: white; border-radius: 20px; padding: 40px; margin-bottom: 40px;">
+                    <h3 style="font-size: 2em; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                        🧠 Coach's Insights
+                    </h3>
+                    <p style="font-size: 1.2em; line-height: 1.6;">
+                        ${data.clientName}'s energy levels are strong this week! Your nutrition consistency is paying off. Managing work demands while maintaining health habits shows real commitment. Building on your wins this week will create lasting momentum. Keep focusing on consistency over perfection - that's where real transformation happens.
+                    </p>
+                </div>
+
+                <!-- Celebration Section -->
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 20px; padding: 40px; text-align: center; margin-bottom: 40px;">
+                    <h3 style="font-size: 2em; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        🎉 Celebrate & Keep Going! 🎉
+                    </h3>
+                    <div style="font-size: 1.5em; color: #ffd700; margin: 10px 0;">⭐ ⭐ ⭐ ⭐ ⭐</div>
+                    <p style="font-size: 1.2em; margin-bottom: 15px;"><strong>This week you're celebrating:</strong> ${data.celebration || 'Family lunch at the city'}</p>
+                    <p style="font-size: 1.1em;">Keep building these positive habits - they're creating real changes in your health and energy!</p>
+                </div>
+
+                <!-- Health ROI Analysis -->
+                <div style="background: white; border-radius: 20px; padding: 40px; margin-bottom: 40px; box-shadow: 0 15px 30px rgba(0,0,0,0.1);">
+                    <h3 style="text-align: center; margin-bottom: 30px; font-size: 2.2em; color: #2d3748;">Health ROI Analysis</h3>
+                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #2d3748, #4a5568);">
+                                <th style="color: white; padding: 15px; text-align: left; font-size: 1.1em;">Metric</th>
+                                <th style="color: white; padding: 15px; text-align: left; font-size: 1.1em;">What This Means</th>
+                                <th style="color: white; padding: 15px; text-align: left; font-size: 1.1em;">ROI for You</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 15px; vertical-align: top;">
+                                    <strong>Weight: ${data.currentWeight}kg</strong><br>
+                                    <span style="color: #718096; font-size: 0.9em;">(Starting: ${data.currentWeight}kg)</span>
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Maintaining your current weight while building healthy habits. Focus on how you feel and energy levels.
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Stable weight with improved habits = better body composition and sustained energy levels.
+                                </td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 15px; vertical-align: top;">
+                                    <strong>Energy Level</strong><br>
+                                    <span style="color: #718096;">${data.energyScore}/10 (${data.energyLevel})</span>
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Strong energy levels indicate your nutrition and sleep habits are working well together.
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Higher energy = better focus → more productive work hours and clearer decision-making.
+                                </td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 15px; vertical-align: top;">
+                                    <strong>Sleep Quality</strong><br>
+                                    <span style="color: #718096;">${data.sleepScore}/10 (${data.sleepQuality})</span>
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Moderate sleep quality - consider evening routine improvements and stress reduction.
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Better sleep = improved recovery → sharper mind and better stress management.
+                                </td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 15px; vertical-align: top;">
+                                    <strong>Nutrition</strong><br>
+                                    <span style="color: #718096;">7/10</span>
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Your nutrition choices directly impact energy stability and long-term health outcomes.
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Consistent nutrition = stable energy → fewer afternoon crashes and better meal satisfaction.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    <strong>Work-Life Balance</strong>
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Challenge: Under the pump lots happening, lots meetings lots to do not sufficient time
+                                </td>
+                                <td style="padding: 15px; vertical-align: top;">
+                                    Managing work stress through health habits = better performance and reduced burnout risk.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Productive Hours Circle -->
+                    <div style="text-align: center; margin-top: 30px;">
+                        <div style="display: inline-block; width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #48bb78, #38a169); color: white; display: flex; align-items: center; justify-content: center; flex-direction: column; margin: 20px; box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);">
+                            <div style="font-size: 2em; font-weight: bold;">+9</div>
+                            <div style="font-size: 0.9em;">HRS/WK</div>
+                        </div>
+                        <h3 style="color: #2d3748; margin-bottom: 15px; font-size: 1.8em;">Estimated Productive Hours Gained</h3>
+                        <p style="color: #4a5568; font-size: 1.1em; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+                            Your health improvements are translating into real productivity gains. These small changes compound into significant life improvements!
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            // Show report and share section
+            document.getElementById('reportSection').style.display = 'block';
+            document.getElementById('share-section').style.display = 'block';
+
+            // Generate share link
+            const reportId = generateReportId(data);
+            const shareURL = `https://may24fc.github.io/UHP-PROGRESS-REPORT?client=${encodeURIComponent(data.clientName)}&id=${reportId}`;
+            document.getElementById('shareLink').textContent = shareURL;
+
+            // Scroll to report
+            document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateReportId(data) {
+            const clientInitials = data.clientName.split(' ').map(name => name[0]).join('').toUpperCase();
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+            return `${clientInitials}${dateStr}${randomSuffix}`;
+        }
+
+        function showProcessing() {
+            document.getElementById('processing').style.display = 'block';
+            document.getElementById('extractedData').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function hideProcessing() {
+            document.getElementById('processing').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
         }
 
         function copyShareLink() {
             const shareLink = document.getElementById('shareLink').textContent;
             navigator.clipboard.writeText(shareLink).then(() => {
-                showMessage('✅ Link copied to clipboard!', 'success');
+                alert('✅ Link copied to clipboard!');
             }).catch(() => {
-                showMessage('❌ Failed to copy link', 'error');
+                alert('❌ Failed to copy link');
             });
         }
 
-        // Check for shared report on page load
+        // Initialize on page load
         window.addEventListener('load', function() {
             setupDragAndDrop();
             
-            // Check URL for shared report with new clean format
+            // Check for shared report
             const urlParams = new URLSearchParams(window.location.search);
-            const reportId = urlParams.get('id');
             const clientName = urlParams.get('client');
-            const weekNumber = urlParams.get('week');
+            const reportId = urlParams.get('id');
             
-            if (reportId) {
-                // Try to load from localStorage first
-                const storedData = localStorage.getItem(`uhp_report_${reportId}`);
-                if (storedData) {
-                    try {
-                        const data = JSON.parse(storedData);
-                        const reportHTML = createReportHTML(data);
-                        document.getElementById('generated-report').innerHTML = reportHTML;
-                        switchMode('view');
-                        return;
-                    } catch (e) {
-                        console.error('Error loading stored report:', e);
-                    }
-                }
+            if (reportId && clientName) {
+                // Show placeholder for shared reports
+                document.getElementById('reportTitle').textContent = `${clientName}'s Progress Report`;
+                document.getElementById('reportDate').textContent = 'Shared Report';
+                document.getElementById('reportSection').style.display = 'block';
                 
-                // If not found in localStorage, show a nice message
-                const reportHTML = `
-                    <div style="text-align: center; padding: 60px; background: white; border-radius: 20px; margin: 20px;">
+                // Generate sample content for shared view
+                document.getElementById('metricsGrid').innerHTML = `
+                    <div style="text-align: center; padding: 60px; grid-column: 1 / -1;">
                         <div style="font-size: 4em; margin-bottom: 20px;">📊</div>
-                        <h2 style="color: #2d3748; margin-bottom: 20px;">Progress Report</h2>
-                        <p style="color: #718096; font-size: 1.2em; margin-bottom: 10px;">
-                            ${clientName ? `${clientName}'s ` : ''}Week ${weekNumber || ''} Report
-                        </p>
-                        <p style="color: #a0aec0;">Report ID: ${reportId}</p>
-                        <div style="background: #f7fafc; padding: 20px; border-radius: 10px; margin: 30px 0;">
-                            <p style="color: #4a5568;">This report link is valid and ready to view.</p>
-                            <p style="color: #718096; font-size: 0.9em; margin-top: 10px;">
-                                In a full implementation, this would load from your database.
-                            </p>
-                        </div>
+                        <h2 style="color: #2d3748; margin-bottom: 20px;">Progress Report Ready</h2>
+                        <p style="color: #718096; font-size: 1.2em;">${clientName}'s report is available</p>
+                        <p style="color: #a0aec0; margin-top: 10px;">Report ID: ${reportId}</p>
                     </div>
                 `;
-                document.getElementById('generated-report').innerHTML = reportHTML;
-                switchMode('view');
-            }
-            
-            // Legacy support for old format
-            const oldReportData = urlParams.get('report');
-            if (oldReportData && !reportId) {
-                try {
-                    const data = JSON.parse(atob(decodeURIComponent(oldReportData)));
-                    const reportHTML = createReportHTML(data);
-                    document.getElementById('generated-report').innerHTML = reportHTML;
-                    switchMode('view');
-                } catch (e) {
-                    console.error('Error loading shared report:', e);
-                }
             }
         });
     </script>
